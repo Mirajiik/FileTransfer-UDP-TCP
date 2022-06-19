@@ -30,7 +30,7 @@ namespace Client.ViewModels
         string login = "";
         bool enable = true;
         string conText = "Connect";
-
+        bool connect = true;
         static ObservableCollection<IPAddress> networks = new ObservableCollection<IPAddress>();
         static public ObservableCollection<IPAddress> Networks
         {
@@ -79,9 +79,11 @@ namespace Client.ViewModels
 
         
         public void Auth()
-        {                  
+        {
             //Button Connect
             //Подготовка сокета UPD для отправки сообщения в шировещательный канал;
+            Enable = false;
+            ConText = "Connected";
             s.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             s.Client.Bind(addr);
             //Подбираем порт для TCPListener
