@@ -150,31 +150,28 @@ namespace Client.ViewModels
             while (true)
             {
                 byte[] buf = new byte[size];
-                foreach (Socket sock in clients)
+                int bytesReceived = clientSocket.Receive(buf);
+                string[] infoPackage = Encoding.Unicode.GetString(buf).Substring(0, bytesReceived / 2).Split(' ');
+                if (infoPackage[0] == "F")
                 {
-                    int bytesReceived = ((Socket)sock).Receive(buf);
-                    string[] infoPackage = Encoding.Unicode.GetString(buf).Substring(0, bytesReceived / 2).Split(' ');
-                    if (infoPackage[0] == "F")
+                    flag = true;
+                    FileStream file = File.Create(infoPackage[1]);
+                    GetMsg += $"[INFO] Receiving file {infoPackage[1]} from {infoPackage[2]}...\n";
+                    while (flag)
                     {
-                        flag = true;
-                        FileStream file = File.Create(infoPackage[1]);
-                        GetMsg += $"[INFO] Receiving file {infoPackage[1]} from {infoPackage[2]}...\n";
-                        while (flag)
+                        bytesReceived = clientSocket.Receive(buf);
+                        if (Encoding.Unicode.GetString(buf).Substring(0, bytesReceived / 2) == "file_sended")
                         {
-                            bytesReceived = ((Socket)sock).Receive(buf);
-                            if (Encoding.Unicode.GetString(buf).Substring(0, bytesReceived / 2) == "file_sended")
-                            {
-                                GetMsg += "Successful!\n";
-                                file.Close();
-                                flag = false;
-                            }
-                            else
-                                file.Write(buf, 0, bytesReceived);
+                            GetMsg += "Successful!\n";
+                            file.Close();
+                            flag = false;
                         }
+                        else
+                            file.Write(buf, 0, bytesReceived);
                     }
-                    else
-                        GetMsg += Encoding.Unicode.GetString(buf).Substring(0, bytesReceived / 2);
                 }
+                else
+                    GetMsg += Encoding.Unicode.GetString(buf).Substring(0, bytesReceived / 2);               
             }            
         }
 
