@@ -27,10 +27,10 @@
         <ColumnDefinition Width="1.5*"></ColumnDefinition>
       </Grid.ColumnDefinitions>
           
-        <Label Grid.Row="0" Grid.Column="0" Content="Web" VerticalAlignment="Center" FontSize="18"></Label>
+        <Label Grid.Row="0" Grid.Column="0" Content="Network" VerticalAlignment="Center" FontSize="16"></Label>
         <ComboBox Grid.Row="0" Grid.Column="1" Items="{Binding Networks}" HorizontalAlignment="Stretch" SelectedItem="{Binding SelectNetwork}" CornerRadius="10" Margin="5"></ComboBox>
 
-        <Label Grid.Row="1" Grid.Column="0" Content="Login" VerticalAlignment="Center" FontSize="18" ></Label>
+        <Label Grid.Row="1" Grid.Column="0" Content="Login" VerticalAlignment="Center" FontSize="16" ></Label>
         <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Login}" Background="Linen" VerticalAlignment="Center" CornerRadius="10" FontSize="15" Margin="5"></TextBox>
         <Border Grid.Row="1" Grid.Column="2" MaxHeight="34" BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Background="Linen" >
           <Button IsEnabled="{Binding Enable}" Background="#FAEBD7" Content="{Binding ConText}" HorizontalContentAlignment="Center" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" CornerRadius="7" FontSize="15" Command="{Binding Auth}"></Button>
