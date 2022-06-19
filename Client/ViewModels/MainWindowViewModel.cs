@@ -151,7 +151,7 @@ namespace Client.ViewModels
             {
                 byte[] buf = new byte[size];
                 int bytesReceived = clientSocket.Receive(buf);
-                string[] infoPackage = Encoding.Unicode.GetString(buf).Substring(0, bytesReceived / 2).Split(' ');
+                string[] infoPackage = Encoding.UTF8.GetString(buf).Substring(0, bytesReceived / 2).Split(' ');
                 if (infoPackage[0] == "F")
                 {
                     flag = true;
@@ -160,7 +160,7 @@ namespace Client.ViewModels
                     while (flag)
                     {
                         bytesReceived = clientSocket.Receive(buf);
-                        if (Encoding.Unicode.GetString(buf).Substring(0, bytesReceived / 2) == "file_sended")
+                        if (Encoding.UTF8.GetString(buf).Substring(0, bytesReceived / 2) == "file_sended")
                         {
                             GetMsg += "Successful!\n";
                             file.Close();
@@ -171,7 +171,7 @@ namespace Client.ViewModels
                     }
                 }
                 else
-                    GetMsg += Encoding.Unicode.GetString(buf).Substring(0, bytesReceived / 2);               
+                    GetMsg += Encoding.UTF8.GetString(buf).Substring(0, bytesReceived / 2);               
             }            
         }
 
