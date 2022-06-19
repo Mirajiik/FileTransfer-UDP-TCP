@@ -14,20 +14,47 @@ namespace Client.ViewModels
         public FilesWindowViewModel()
         {
             foreach (var logicalDrive in Directory.GetLogicalDrives())
-                DirectoriesAndFiles.Add(logicalDrive);
+                DirectoriesAndFiles.Add(new DirectoryViewModel(logicalDrive));
         }
         string _filePath = "ABDYLABASDFKASJDF";
         public string FilePath
         {
             get => _filePath;
             set => this.RaiseAndSetIfChanged(ref _filePath, value);
-            
+
         }
-        ObservableCollection<string> _directoriesAndFiles = new ObservableCollection<string>();
-        public ObservableCollection<string> DirectoriesAndFiles
+
+        FileEntityViewModel _selectedFileEntity;
+        public FileEntityViewModel SelectedFileEntity
+        {
+            get => _selectedFileEntity;
+            set => this.RaiseAndSetIfChanged(ref _selectedFileEntity, value);
+        }
+
+        ObservableCollection<FileEntityViewModel> _directoriesAndFiles = new ObservableCollection<FileEntityViewModel>();
+        public ObservableCollection<FileEntityViewModel> DirectoriesAndFiles
         {
             get => _directoriesAndFiles;
             set => this.RaiseAndSetIfChanged(ref _directoriesAndFiles, value);
+        }
+
+        private void Open(object parameter)
+        {
+            if (parameter is DirectoryViewModel directoryViewModel)
+            {
+                FilePath = directoryViewModel.FullName;
+                DirectoriesAndFiles.Clear();
+                var directoryInfo = new DirectoryInfo(FilePath);
+                foreach (var directory in directoryInfo.GetDirectories())
+                {
+                    DirectoriesAndFiles.Add(new DirectoryViewModel(directory));
+                }
+
+                foreach (var fileInfo in directoryInfo.GetFiles())
+                {
+                    DirectoriesAndFiles.Add(new FileViewModel(fileInfo));
+                }
+            }
         }
     }
 }

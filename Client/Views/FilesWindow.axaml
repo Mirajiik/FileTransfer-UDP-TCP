@@ -16,7 +16,14 @@
 			<RowDefinition Height="*"/>
 		</Grid.RowDefinitions>
 		<TextBlock Grid.Row="0" Text="{Binding FilePath}" Padding="10" FontSize="18" />
-		<ListBox Grid.Row="1"  Items="{Binding DirectoriesAndFiles}">
+		<ListBox Grid.Row="1"  Items="{Binding DirectoriesAndFiles}" SelectedItem="{Binding SelectedFileEntity}">
+			<ListBox.ItemTemplate>
+				<DataTemplate>
+					<Grid>
+						<TextBlock Text="{Binding Name}"></TextBlock>
+					</Grid>
+				</DataTemplate>
+			</ListBox.ItemTemplate>
 		</ListBox>
 	</Grid>
 </Window>
