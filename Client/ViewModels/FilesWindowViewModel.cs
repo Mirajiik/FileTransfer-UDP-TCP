@@ -16,7 +16,7 @@ namespace Client.ViewModels
             foreach (var logicalDrive in Directory.GetLogicalDrives())
                 DirectoriesAndFiles.Add(logicalDrive);
         }
-        string _filePath = "ABCDEFG";
+        string _filePath = "ABDYLABASDFKASJDF";
         public string FilePath
         {
             get => _filePath;
