@@ -146,29 +146,36 @@ namespace Client.ViewModels
         }
         public void ReadMessage(Socket clientSocket)
         {
+            bool flag = false;
             while (true)
             {
-                byte[] serviceBuf = new byte[4];
-                clientSocket.Receive(serviceBuf);
-                string serviceMsg = Encoding.UTF8.GetString(serviceBuf).Trim('\0');
-                if (serviceMsg == "m")
+                byte[] buf = new byte[size];
+                foreach (Socket sock in clients)
                 {
-                    byte[] buf = new byte[size];
-                    clientSocket.Receive(buf);
-                    GetMsg += "•" + Encoding.UTF8.GetString(buf).Replace("\0", "") + "\n";
-                }
-                else if (serviceMsg.Contains("f"))
-                {
-                    FileStream file = new FileInfo("C:\\User files\\1.png").Create();
-                    for (int i = 0; i <= int.Parse(serviceMsg.Substring(1)); i++)
+                    int bytesReceived = ((Socket)sock).Receive(buf);
+                    string[] infoPackage = Encoding.Unicode.GetString(buf).Substring(0, bytesReceived / 2).Split(' ');
+                    if (infoPackage[0] == "F")
                     {
-                        byte[] buf = new byte[fileSize];
-                        clientSocket.Receive(buf);
-                        file.Write(buf, 0, buf.Length);
+                        flag = true;
+                        FileStream file = File.Create(infoPackage[1]);
+                        GetMsg += $"[INFO] Receiving file {infoPackage[1]} from {infoPackage[2]}...\n";
+                        while (flag)
+                        {
+                            bytesReceived = ((Socket)sock).Receive(buf);
+                            if (Encoding.Unicode.GetString(buf).Substring(0, bytesReceived / 2) == "file_sended")
+                            {
+                                GetMsg += "Successful!\n";
+                                file.Close();
+                                flag = false;
+                            }
+                            else
+                                file.Write(buf, 0, bytesReceived);
+                        }
                     }
-                    file.Close();
+                    else
+                        GetMsg += Encoding.Unicode.GetString(buf).Substring(0, bytesReceived / 2);
                 }
-            }
+            }            
         }
 
         public void SendMsg()
@@ -181,7 +188,7 @@ namespace Client.ViewModels
                 item.Send(Encoding.UTF8.GetBytes("m"));
                 item.Send(buf);
             }
-            GetMsg += "•I'm >> " + GetText + "\n";
+            GetMsg += $"{login}(You) >> " + GetText + "\n";
         }
 
         public void SendFile()
@@ -189,8 +196,30 @@ namespace Client.ViewModels
             //Button SendFile
 
             //window.InitializeComponent();
-            var window = new FilesWindow();
-            window.Show();
+            //var window = new FilesWindow();
+            //window.Show();
+            string filePath = GetText;
+            string fileName = "";
+            byte[] buf = new byte[size];
+            try
+            {
+                fileName = filePath.Substring(filePath.LastIndexOf('\\') + 1);
+                foreach (Socket sock in clients)
+                {
+                    buf = Encoding.Unicode.GetBytes($"F {fileName} {login}");
+                    sock.Send(buf);
+                    Thread.Sleep(10);
+                    sock.SendFile(fileName);
+                    Thread.Sleep(1000);
+                    buf = Encoding.Unicode.GetBytes($"file_sended");
+                    sock.Send(buf);
+                }
+                GetText = "";
+            }
+            catch (Exception ex)
+            {
+                GetMsg += "[INFO] File is not exist! Check file path.\n";
+            }
             /*foreach (var item in clients)
             {
                 item.Send(Encoding.UTF8.GetBytes($"f{(new FileInfo("1.png")).Length / fileSize}"));
