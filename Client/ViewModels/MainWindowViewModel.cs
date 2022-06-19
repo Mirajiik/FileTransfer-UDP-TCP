@@ -34,7 +34,7 @@ namespace Client.ViewModels
         string login = "";
         bool enable = true;
         string conText = "Connect";
-
+        bool connect = true;
         static ObservableCollection<IPAddress> networks = new ObservableCollection<IPAddress>();
         static public ObservableCollection<IPAddress> Networks
         {
@@ -85,10 +85,12 @@ namespace Client.ViewModels
         public void Auth()
         {
             //Button Connect
-            //Подготовка сокета UPD для отправки сообщения в шировещательный канал;
+            //ГЏГ®Г¤ГЈГ®ГІГ®ГўГЄГ  Г±Г®ГЄГҐГІГ  UPD Г¤Г«Гї Г®ГІГЇГ°Г ГўГЄГЁ Г±Г®Г®ГЎГ№ГҐГ­ГЁГї Гў ГёГЁГ°Г®ГўГҐГ№Г ГІГҐГ«ГјГ­Г»Г© ГЄГ Г­Г Г«;
+            Enable = false;
+            ConText = "Connected";
             s.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             s.Client.Bind(addr);
-            //Подбираем порт для TCPListener
+            //ГЏГ®Г¤ГЎГЁГ°Г ГҐГ¬ ГЇГ®Г°ГІ Г¤Г«Гї TCPListener
             bool findPort = true;
             for (port = 8080; (findPort) && (port < 8090);)
             {
@@ -100,13 +102,13 @@ namespace Client.ViewModels
                 }
                 catch (SocketException e) when (e.SocketErrorCode == SocketError.AddressAlreadyInUse)
                 {
-                    GetMsg = "Поиск свободного порта";
+                    GetMsg = "ГЏГ®ГЁГ±ГЄ Г±ГўГ®ГЎГ®Г¤Г­Г®ГЈГ® ГЇГ®Г°ГІГ ";
                     port++;
                 }
             }
             GetMsg = $"My port: {port}\n";
             myIPEndPoint = new IPEndPoint(SelectNetwork, port);
-            //Запускаем принятие подключений после нашего сообщение в широковещательный по UDP
+            //Г‡Г ГЇГіГ±ГЄГ ГҐГ¬ ГЇГ°ГЁГ­ГїГІГЁГҐ ГЇГ®Г¤ГЄГ«ГѕГ·ГҐГ­ГЁГ© ГЇГ®Г±Г«ГҐ Г­Г ГёГҐГЈГ® Г±Г®Г®ГЎГ№ГҐГ­ГЁГҐ Гў ГёГЁГ°Г®ГЄГ®ГўГҐГ№Г ГІГҐГ«ГјГ­Г»Г© ГЇГ® UDP
             Thread ConnectOldSoket = new Thread(() =>
             {
                 while (true)
@@ -121,10 +123,10 @@ namespace Client.ViewModels
                 }
             });
             ConnectOldSoket.Start();
-            //Отправляем наш TCPListener в широковещательный по UDP
+            //ГЋГІГЇГ°Г ГўГ«ГїГҐГ¬ Г­Г Гё TCPListener Гў ГёГЁГ°Г®ГЄГ®ГўГҐГ№Г ГІГҐГ«ГјГ­Г»Г© ГЇГ® UDP
             byte[] buf = Encoding.UTF8.GetBytes($"{myIPEndPoint.ToString()}");
             s.Send(buf, buf.Length, BroadcastEndPoint);
-            //Подключение сокетов, созданых после нашего
+            //ГЏГ®Г¤ГЄГ«ГѕГ·ГҐГ­ГЁГҐ Г±Г®ГЄГҐГІГ®Гў, Г±Г®Г§Г¤Г Г­Г»Гµ ГЇГ®Г±Г«ГҐ Г­Г ГёГҐГЈГ®
             Thread findClientThread = new Thread(FindNewClient);
             findClientThread.Start();
         }
@@ -148,44 +150,61 @@ namespace Client.ViewModels
                 }
             }
         }
+
         public void ReadMessage(Socket clientSocket)
         {
+            bool flag = false;
             while (true)
             {
-                byte[] serviceBuf = new byte[4];
-                clientSocket.Receive(serviceBuf);
-                string serviceMsg = Encoding.UTF8.GetString(serviceBuf).Trim('\0');
-                if (serviceMsg == "m")
+                byte[] buf = new byte[size];
+                int bytesReceived = clientSocket.Receive(buf);
+                string[] infoPackage = Encoding.UTF8.GetString(buf).Trim('\0').Split('~');
+                if (infoPackage[0] == "F")
                 {
-                    byte[] buf = new byte[size];
-                    clientSocket.Receive(buf);
-                    GetMsg += "•" + Encoding.UTF8.GetString(buf).Replace("\0", "") + "\n";
-                }
-                else if (serviceMsg.Contains("f"))
-                {
-                    FileStream file = new FileInfo("C:\\User files\\1.png").Create();
-                    for (int i = 0; i <= int.Parse(serviceMsg.Substring(1)); i++)
+                    flag = true;
+                    FileStream file = File.Create(infoPackage[1]);
+                    GetMsg += $"[INFO] Receiving file {infoPackage[1]} from {infoPackage[3]}... ";
+                    long cycle = long.Parse(infoPackage[2]) / size;
+                    if (long.Parse(infoPackage[2]) % size != 0)
+                        cycle++;
+                    string temp = GetMsg;
+                    long progress = cycle / 100;
+                    long step = progress;
+                    int procent = 0;
+                    for (int i = 0; i < cycle; i++)
                     {
-                        byte[] buf = new byte[fileSize];
-                        clientSocket.Receive(buf);
-                        file.Write(buf, 0, buf.Length);
+                        bytesReceived = clientSocket.Receive(buf);
+                        file.Write(buf, 0, bytesReceived);
+                        if (i>progress)
+                        {
+                            GetMsg = $"{temp}{procent}%";
+                            progress += step;
+                            procent++;
+                        }
                     }
+                    GetMsg = $"{temp}Successful!\n";
                     file.Close();
                 }
-            }
+                else if (infoPackage[0] == "M")
+                {
+                    clientSocket.Receive(buf);
+                    GetMsg += Encoding.UTF8.GetString(buf).Trim('\0');               
+                }
+            }            
         }
 
         public void SendMsg()
         {
             //Button Send
             byte[] buf = new byte[size];
-            buf = Encoding.UTF8.GetBytes($"{Login} >> {GetText}");
+            buf = Encoding.UTF8.GetBytes($"{Login} >> {GetText}\n");
             foreach (var item in clients)
             {
-                item.Send(Encoding.UTF8.GetBytes("m"));
+                item.Send(Encoding.UTF8.GetBytes("M"));
                 item.Send(buf);
             }
-            GetMsg += "•I'm >> " + GetText + "\n";
+            GetMsg += $"{login}(You) >> " + GetText + "\n";
+            GetText = "";
         }
 
         public async void SendFile()
@@ -196,13 +215,29 @@ namespace Client.ViewModels
             {
                 await window.ShowDialog(desktop.MainWindow);
             }
-            GetMsg += $"Filepath: {(window.DataContext as FilesWindowViewModel).FilePath}";
-
-            /*foreach (var item in clients)
+            
+            string filePath = (window.DataContext as FilesWindowViewModel).FilePath;
+            string fileName = "";
+            byte[] buf = new byte[size];
+            try
             {
-                item.Send(Encoding.UTF8.GetBytes($"f{(new FileInfo("1.png")).Length / fileSize}"));
-                item.SendFileAsync("1.png");
-            }*/
+                FileInfo file = new FileInfo(filePath);
+                long size = file.Length;
+                fileName = filePath.Substring(filePath.LastIndexOf('\\') + 1);
+                foreach (Socket sock in clients)
+                {
+                    buf = Encoding.UTF8.GetBytes($"F~{fileName}~{size}~{login}");
+                    sock.Send(buf);
+                    Thread.Sleep(10);
+                    sock.SendFile(filePath);
+                }
+                GetText = "";
+                GetMsg += "Successful!\n";
+            }
+            catch (Exception ex)
+            {
+                GetMsg += "[INFO] File is not exist! Check file path.\n";
+            }
         }
     }
 }
