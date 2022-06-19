@@ -28,13 +28,11 @@ namespace Client.ViewModels
         List<Socket> clients = new List<Socket>();
 
         const int size = 512;
-        const int fileSize = 4096;
         string str = "";
         string msg = "";
         string login = "";
         bool enable = true;
         string conText = "Connect";
-        bool connect = true;
         static ObservableCollection<IPAddress> networks = new ObservableCollection<IPAddress>();
         static public ObservableCollection<IPAddress> Networks
         {
@@ -85,12 +83,10 @@ namespace Client.ViewModels
         public void Auth()
         {
             //Button Connect
-            //Ïîäãîòîâêà ñîêåòà UPD äëÿ îòïðàâêè ñîîáùåíèÿ â øèðîâåùàòåëüíûé êàíàë;
             Enable = false;
             ConText = "Connected";
             s.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             s.Client.Bind(addr);
-            //Ïîäáèðàåì ïîðò äëÿ TCPListener
             bool findPort = true;
             for (port = 8080; (findPort) && (port < 8090);)
             {
@@ -108,7 +104,6 @@ namespace Client.ViewModels
             }
             GetMsg = $"My port: {port}\n";
             myIPEndPoint = new IPEndPoint(SelectNetwork, port);
-            //Çàïóñêàåì ïðèíÿòèå ïîäêëþ÷åíèé ïîñëå íàøåãî ñîîáùåíèå â øèðîêîâåùàòåëüíûé ïî UDP
             Thread ConnectOldSoket = new Thread(() =>
             {
                 while (true)
@@ -123,10 +118,8 @@ namespace Client.ViewModels
                 }
             });
             ConnectOldSoket.Start();
-            //Îòïðàâëÿåì íàø TCPListener â øèðîêîâåùàòåëüíûé ïî UDP
             byte[] buf = Encoding.UTF8.GetBytes($"{myIPEndPoint.ToString()}");
             s.Send(buf, buf.Length, BroadcastEndPoint);
-            //Ïîäêëþ÷åíèå ñîêåòîâ, ñîçäàíûõ ïîñëå íàøåãî
             Thread findClientThread = new Thread(FindNewClient);
             findClientThread.Start();
         }
