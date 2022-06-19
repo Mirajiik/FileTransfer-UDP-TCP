@@ -3,20 +3,36 @@
 		xmlns:vm="using:Client.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+		xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
         mc:Ignorable="d" Width="800" Height="450"
         x:Class="Client.Views.FilesWindow"
         Title="Менеджер файлов">
 	<Window.DataContext>
 		<vm:FilesWindowViewModel/>
 	</Window.DataContext>
-	
+
 	<Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="*"/>
 		</Grid.RowDefinitions>
-		<TextBlock Grid.Row="0" Text="{Binding FilePath}" Padding="10" FontSize="18" />
+		<StackPanel Orientation="Horizontal">
+			<Button Command="{Binding Back}" VerticalAlignment="Stretch" HorizontalAlignment="Left" IsVisible="{Binding #FullPath.Text.Length}">
+				<Image Source="/Assets/BackImage.png" Stretch="Fill" Height="20" Width="20" />
+			</Button>
+			<Border Background="Silver" IsVisible="{Binding #FullPath.Text.Length}" Grid.Row="0" BorderThickness="2" BorderBrush="Gray" CornerRadius="5" HorizontalAlignment="Stretch" >
+				<TextBlock Name="FullPath" Text="{Binding FilePath}" Padding="10, 6" FontSize="16" HorizontalAlignment="Stretch"/>
+			</Border>
+		</StackPanel>
 		<ListBox Grid.Row="1"  Items="{Binding DirectoriesAndFiles}" SelectedItem="{Binding SelectedFileEntity}">
+			<i:Interaction.Behaviors>
+				<ia:EventTriggerBehavior EventName="DoubleTapped">
+					<ia:InvokeCommandAction Command="{Binding Open}"
+										   CommandParameter="{Binding SelectedFileEntity}">
+					</ia:InvokeCommandAction>
+				</ia:EventTriggerBehavior>
+			</i:Interaction.Behaviors>
 			<ListBox.ItemTemplate>
 				<DataTemplate>
 					<Grid>

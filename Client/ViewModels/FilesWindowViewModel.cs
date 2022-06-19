@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ReactiveUI;
 using System.IO;
+using Avalonia.Controls.ApplicationLifetimes;
 
 namespace Client.ViewModels
 {
@@ -16,7 +17,7 @@ namespace Client.ViewModels
             foreach (var logicalDrive in Directory.GetLogicalDrives())
                 DirectoriesAndFiles.Add(new DirectoryViewModel(logicalDrive));
         }
-        string _filePath = "ABDYLABASDFKASJDF";
+        string _filePath = "";
         public string FilePath
         {
             get => _filePath;
@@ -54,6 +55,45 @@ namespace Client.ViewModels
                 {
                     DirectoriesAndFiles.Add(new FileViewModel(fileInfo));
                 }
+            }
+            else
+            {
+                FilePath = (parameter as FileViewModel).FullName;
+                if (Avalonia.Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                {
+                    desktop.Windows.ToList().ForEach(x =>
+                    {
+                        if (x is Views.FilesWindow)
+                            x.Close();
+                    });
+                }
+            }
+        }
+
+        public void Back()
+        {
+            DirectoriesAndFiles.Clear();
+            var directoryInfo = new DirectoryInfo(FilePath).Parent;
+            if (directoryInfo != null)
+            {
+                FilePath = directoryInfo.FullName;
+                foreach (var directory in directoryInfo.GetDirectories())
+                {
+                    DirectoriesAndFiles.Add(new DirectoryViewModel(directory));
+                }
+
+                foreach (var fileInfo in directoryInfo.GetFiles())
+                {
+                    DirectoriesAndFiles.Add(new FileViewModel(fileInfo));
+                }
+            }
+            else
+            {
+                FilePath = "";
+                DirectoriesAndFiles.Clear();
+                foreach (var logicalDrive in Directory.GetLogicalDrives())
+                    DirectoriesAndFiles.Add(new DirectoryViewModel(logicalDrive));
+
             }
         }
     }

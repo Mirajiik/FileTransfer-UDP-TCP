@@ -8,6 +8,10 @@ using System.Threading;
 using ReactiveUI;
 using System.Collections.ObjectModel;
 using Client.Views;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls;
+using System.Threading.Tasks;
 
 namespace Client.ViewModels
 {
@@ -26,7 +30,7 @@ namespace Client.ViewModels
         const int size = 512;
         const int fileSize = 4096;
         string str = "";
-        string msg = "client";
+        string msg = "";
         string login = "";
         bool enable = true;
         string conText = "Connect";
@@ -77,9 +81,9 @@ namespace Client.ViewModels
             }
         }
 
-        
+
         public void Auth()
-        {                  
+        {
             //Button Connect
             //Подготовка сокета UPD для отправки сообщения в шировещательный канал;
             s.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
@@ -184,13 +188,16 @@ namespace Client.ViewModels
             GetMsg += "•I'm >> " + GetText + "\n";
         }
 
-        public void SendFile()
+        public async void SendFile()
         {
             //Button SendFile
-
-            //window.InitializeComponent();
             var window = new FilesWindow();
-            window.Show();
+            if (Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                await window.ShowDialog(desktop.MainWindow);
+            }
+            GetMsg += $"Filepath: {(window.DataContext as FilesWindowViewModel).FilePath}";
+
             /*foreach (var item in clients)
             {
                 item.Send(Encoding.UTF8.GetBytes($"f{(new FileInfo("1.png")).Length / fileSize}"));
