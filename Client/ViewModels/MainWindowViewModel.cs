@@ -203,12 +203,12 @@ namespace Client.ViewModels
                 fileName = filePath.Substring(filePath.LastIndexOf('\\') + 1);
                 foreach (Socket sock in clients)
                 {
-                    buf = Encoding.Unicode.GetBytes($"F {fileName} {login}");
+                    buf = Encoding.UTF8.GetBytes($"F {fileName} {login}");
                     sock.Send(buf);
                     Thread.Sleep(10);
                     sock.SendFile(fileName);
                     Thread.Sleep(1000);
-                    buf = Encoding.Unicode.GetBytes($"file_sended");
+                    buf = Encoding.UTF8.GetBytes($"file_sended");
                     sock.Send(buf);
                 }
                 GetText = "";
