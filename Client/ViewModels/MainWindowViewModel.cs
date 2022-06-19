@@ -181,8 +181,11 @@ namespace Client.ViewModels
                     GetMsg = $"{temp}Successful!\n";
                     file.Close();
                 }
-                else
+                else if (infoPackage[0] == "M")
+                {
+                    clientSocket.Receive(buf);
                     GetMsg += Encoding.UTF8.GetString(buf).Trim('\0');               
+                }
             }            
         }
 
@@ -193,7 +196,7 @@ namespace Client.ViewModels
             buf = Encoding.UTF8.GetBytes($"{Login} >> {GetText}\n");
             foreach (var item in clients)
             {
-                item.Send(Encoding.UTF8.GetBytes("m"));
+                item.Send(Encoding.UTF8.GetBytes("M"));
                 item.Send(buf);
             }
             GetMsg += $"{login}(You) >> " + GetText + "\n";
