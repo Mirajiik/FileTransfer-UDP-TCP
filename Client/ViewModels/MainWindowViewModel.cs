@@ -146,6 +146,7 @@ namespace Client.ViewModels
                 }
             }
         }
+
         public void ReadMessage(Socket clientSocket)
         {
             bool flag = false;
@@ -158,19 +159,27 @@ namespace Client.ViewModels
                 {
                     flag = true;
                     FileStream file = File.Create(infoPackage[1]);
-                    GetMsg += $"[INFO] Receiving file {infoPackage[1]} from {infoPackage[2]}...\n";
-                    while (flag)
+                    GetMsg += $"[INFO] Receiving file {infoPackage[1]} from {infoPackage[3]}... ";
+                    long cycle = long.Parse(infoPackage[2]) / size;
+                    if (long.Parse(infoPackage[2]) % size != 0)
+                        cycle++;
+                    string temp = GetMsg;
+                    long progress = cycle / 100;
+                    long step = progress;
+                    int procent = 0;
+                    for (int i = 0; i < cycle; i++)
                     {
                         bytesReceived = clientSocket.Receive(buf);
-                        if (Encoding.UTF8.GetString(buf).Trim('\0') == "file_sended")
+                        file.Write(buf, 0, bytesReceived);
+                        if (i>progress)
                         {
-                            GetMsg += "Successful!\n";
-                            file.Close();
-                            flag = false;
+                            GetMsg = $"{temp}{procent}%";
+                            progress += step;
+                            procent++;
                         }
-                        else
-                            file.Write(buf, 0, bytesReceived);
                     }
+                    GetMsg = $"{temp}Successful!\n";
+                    file.Close();
                 }
                 else
                     GetMsg += Encoding.UTF8.GetString(buf).Trim('\0');               
@@ -181,13 +190,14 @@ namespace Client.ViewModels
         {
             //Button Send
             byte[] buf = new byte[size];
-            buf = Encoding.UTF8.GetBytes($"{Login} >> {GetText}");
+            buf = Encoding.UTF8.GetBytes($"{Login} >> {GetText}\n");
             foreach (var item in clients)
             {
                 item.Send(Encoding.UTF8.GetBytes("m"));
                 item.Send(buf);
             }
             GetMsg += $"{login}(You) >> " + GetText + "\n";
+            GetText = "";
         }
 
         public void SendFile()
@@ -202,28 +212,23 @@ namespace Client.ViewModels
             byte[] buf = new byte[size];
             try
             {
+                FileInfo file = new FileInfo(filePath);
+                long size = file.Length;
                 fileName = filePath.Substring(filePath.LastIndexOf('\\') + 1);
                 foreach (Socket sock in clients)
                 {
-                    buf = Encoding.UTF8.GetBytes($"F~{fileName}~{login}");
+                    buf = Encoding.UTF8.GetBytes($"F~{fileName}~{size}~{login}");
                     sock.Send(buf);
                     Thread.Sleep(10);
-                    sock.SendFile(fileName);
-                    Thread.Sleep(1000);
-                    buf = Encoding.UTF8.GetBytes($"file_sended");
-                    sock.Send(buf);
+                    sock.SendFile(filePath);
                 }
                 GetText = "";
+                GetMsg += "Successful!\n";
             }
             catch (Exception ex)
             {
                 GetMsg += "[INFO] File is not exist! Check file path.\n";
             }
-            /*foreach (var item in clients)
-            {
-                item.Send(Encoding.UTF8.GetBytes($"f{(new FileInfo("1.png")).Length / fileSize}"));
-                item.SendFileAsync("1.png");
-            }*/
         }
     }
 }
