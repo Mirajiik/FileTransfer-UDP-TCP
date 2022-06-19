@@ -8,6 +8,10 @@ using System.Threading;
 using ReactiveUI;
 using System.Collections.ObjectModel;
 using Client.Views;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls;
+using System.Threading.Tasks;
 
 namespace Client.ViewModels
 {
@@ -26,7 +30,7 @@ namespace Client.ViewModels
         const int size = 512;
         const int fileSize = 4096;
         string str = "";
-        string msg = "client";
+        string msg = "";
         string login = "";
         bool enable = true;
         string conText = "Connect";
@@ -77,16 +81,16 @@ namespace Client.ViewModels
             }
         }
 
-        
+
         public void Auth()
         {
             //Button Connect
-            //Подготовка сокета UPD для отправки сообщения в шировещательный канал;
+            //ГЏГ®Г¤ГЈГ®ГІГ®ГўГЄГ  Г±Г®ГЄГҐГІГ  UPD Г¤Г«Гї Г®ГІГЇГ°Г ГўГЄГЁ Г±Г®Г®ГЎГ№ГҐГ­ГЁГї Гў ГёГЁГ°Г®ГўГҐГ№Г ГІГҐГ«ГјГ­Г»Г© ГЄГ Г­Г Г«;
             Enable = false;
             ConText = "Connected";
             s.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             s.Client.Bind(addr);
-            //Подбираем порт для TCPListener
+            //ГЏГ®Г¤ГЎГЁГ°Г ГҐГ¬ ГЇГ®Г°ГІ Г¤Г«Гї TCPListener
             bool findPort = true;
             for (port = 8080; (findPort) && (port < 8090);)
             {
@@ -98,13 +102,13 @@ namespace Client.ViewModels
                 }
                 catch (SocketException e) when (e.SocketErrorCode == SocketError.AddressAlreadyInUse)
                 {
-                    GetMsg = "Поиск свободного порта";
+                    GetMsg = "ГЏГ®ГЁГ±ГЄ Г±ГўГ®ГЎГ®Г¤Г­Г®ГЈГ® ГЇГ®Г°ГІГ ";
                     port++;
                 }
             }
             GetMsg = $"My port: {port}\n";
             myIPEndPoint = new IPEndPoint(SelectNetwork, port);
-            //Запускаем принятие подключений после нашего сообщение в широковещательный по UDP
+            //Г‡Г ГЇГіГ±ГЄГ ГҐГ¬ ГЇГ°ГЁГ­ГїГІГЁГҐ ГЇГ®Г¤ГЄГ«ГѕГ·ГҐГ­ГЁГ© ГЇГ®Г±Г«ГҐ Г­Г ГёГҐГЈГ® Г±Г®Г®ГЎГ№ГҐГ­ГЁГҐ Гў ГёГЁГ°Г®ГЄГ®ГўГҐГ№Г ГІГҐГ«ГјГ­Г»Г© ГЇГ® UDP
             Thread ConnectOldSoket = new Thread(() =>
             {
                 while (true)
@@ -119,10 +123,10 @@ namespace Client.ViewModels
                 }
             });
             ConnectOldSoket.Start();
-            //Отправляем наш TCPListener в широковещательный по UDP
+            //ГЋГІГЇГ°Г ГўГ«ГїГҐГ¬ Г­Г Гё TCPListener Гў ГёГЁГ°Г®ГЄГ®ГўГҐГ№Г ГІГҐГ«ГјГ­Г»Г© ГЇГ® UDP
             byte[] buf = Encoding.UTF8.GetBytes($"{myIPEndPoint.ToString()}");
             s.Send(buf, buf.Length, BroadcastEndPoint);
-            //Подключение сокетов, созданых после нашего
+            //ГЏГ®Г¤ГЄГ«ГѕГ·ГҐГ­ГЁГҐ Г±Г®ГЄГҐГІГ®Гў, Г±Г®Г§Г¤Г Г­Г»Гµ ГЇГ®Г±Г«ГҐ Г­Г ГёГҐГЈГ®
             Thread findClientThread = new Thread(FindNewClient);
             findClientThread.Start();
         }
@@ -203,14 +207,16 @@ namespace Client.ViewModels
             GetText = "";
         }
 
-        public void SendFile()
+        public async void SendFile()
         {
             //Button SendFile
-
-            //window.InitializeComponent();
-            //var window = new FilesWindow();
-            //window.Show();
-            string filePath = GetText;
+            var window = new FilesWindow();
+            if (Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                await window.ShowDialog(desktop.MainWindow);
+            }
+            
+            string filePath = (window.DataContext as FilesWindowViewModel).FilePath;
             string fileName = "";
             byte[] buf = new byte[size];
             try
