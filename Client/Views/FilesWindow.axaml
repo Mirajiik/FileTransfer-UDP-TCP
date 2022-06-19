@@ -1,0 +1,22 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:vm="using:Client.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" Width="800" Height="450"
+        x:Class="Client.Views.FilesWindow"
+        Title="Менеджер файлов">
+	<Window.DataContext>
+		<vm:FilesWindowViewModel/>
+	</Window.DataContext>
+	
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="*"/>
+		</Grid.RowDefinitions>
+		<TextBlock Grid.Row="0" Text="{Binding FilePath}" Padding="10" FontSize="18" />
+		<ListBox Grid.Row="1"  Items="{Binding DirectoriesAndFiles}">
+		</ListBox>
+	</Grid>
+</Window>
