@@ -98,7 +98,7 @@ namespace Client.ViewModels
                 }
                 catch (SocketException e) when (e.SocketErrorCode == SocketError.AddressAlreadyInUse)
                 {
-                    GetMsg = "Ïîèñê ñâîáîäíîãî ïîðòà";
+                    GetMsg = "Find free port...";
                     port++;
                 }
             }
@@ -216,7 +216,7 @@ namespace Client.ViewModels
             {
                 FileInfo file = new FileInfo(filePath);
                 long size = file.Length;
-                fileName = filePath.Substring(filePath.LastIndexOf('\\') + 1);
+                fileName = file.Name;
                 foreach (Socket sock in clients)
                 {
                     buf = Encoding.UTF8.GetBytes($"F~{fileName}~{size}~{login}");

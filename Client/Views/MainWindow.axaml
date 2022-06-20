@@ -44,12 +44,12 @@
     </Border>
 
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-      <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Background="Linen" >
-        <Button Content="File" IsEnabled="{Binding !Enable}" FontSize="15" CornerRadius="10" Background="#FAEBD7" HorizontalAlignment="Center" HorizontalContentAlignment="Center" Command="{Binding SendFile}"></Button>
+      <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Background="Linen"  >
+        <Button Content="File" IsEnabled="{Binding !Enable}" FontSize="15" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Command="{Binding SendFile}"></Button>
       </Border>
       <TextBox Text="{Binding GetText}" IsEnabled="{Binding !Enable}" Width="200" Background="Linen" CornerRadius="10" FontSize="15" Margin="3, 0" ></TextBox>
-      <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Background="Linen">
-        <Button Content="Send" IsEnabled="{Binding !Enable}" FontSize="15" CornerRadius="10" Background="#FAEBD7" HorizontalAlignment="Center" HorizontalContentAlignment="Center" Command="{Binding SendMsg}"/>
+      <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Background="Linen" >
+        <Button Content="Send" IsEnabled="{Binding !Enable}" FontSize="15" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Command="{Binding SendMsg}"/>
       </Border>
     </StackPanel>
   </StackPanel>

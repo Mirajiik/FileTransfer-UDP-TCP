@@ -5,13 +5,16 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
 		xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
+		xmlns:ui="clr-namespace:Client.Models"
         mc:Ignorable="d" Width="800" Height="450"
         x:Class="Client.Views.FilesWindow"
         Title="Менеджер файлов">
 	<Window.DataContext>
 		<vm:FilesWindowViewModel/>
 	</Window.DataContext>
-
+	<Window.Resources>
+		<ui:FileEntityToImageConverter x:Key="ToImageConverter"/>
+	</Window.Resources>
 	<Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
@@ -35,9 +38,10 @@
 			</i:Interaction.Behaviors>
 			<ListBox.ItemTemplate>
 				<DataTemplate>
-					<Grid>
-						<TextBlock Text="{Binding Name}"></TextBlock>
-					</Grid>
+					<StackPanel Orientation="Horizontal">
+						<Image Source="{Binding ., Converter={StaticResource ToImageConverter}}" Height="20" Stretch="Fill" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+						<TextBlock Name="FileName" Margin="5, 0" Text="{Binding Name}"></TextBlock>
+					</StackPanel>
 				</DataTemplate>
 			</ListBox.ItemTemplate>
 		</ListBox>

@@ -10,7 +10,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 
 namespace Client.ViewModels
 {
-    internal class FilesWindowViewModel : ViewModelBase
+    public class FilesWindowViewModel : ViewModelBase
     {
         public FilesWindowViewModel()
         {
@@ -24,7 +24,7 @@ namespace Client.ViewModels
             set => this.RaiseAndSetIfChanged(ref _filePath, value);
 
         }
-
+        
         FileEntityViewModel _selectedFileEntity;
         public FileEntityViewModel SelectedFileEntity
         {
