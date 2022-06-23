@@ -12,6 +12,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace Client.ViewModels
 {
@@ -27,7 +28,8 @@ namespace Client.ViewModels
         List<Thread> readingThreads = new List<Thread>();
         List<Socket> clients = new List<Socket>();
 
-        const int size = 512;
+        const int size = 4096;
+        //const int size = 4096;
         string str = "";
         string msg = "";
         string login = "";
@@ -146,6 +148,33 @@ namespace Client.ViewModels
 
         public void ReadMessage(Socket clientSocket)
         {
+            while (true)
+            {
+                byte[] buf = new byte[size];
+                clientSocket.Receive(buf);
+                int lengthInfoPacage = Array.IndexOf(buf, (byte)'\0');
+                string[] infoPackage = Encoding.UTF8.GetString(buf.Take(lengthInfoPacage).ToArray()).Split('~');
+                if (infoPackage[0] == "f")
+                {
+                    FileStream file = File.Create(infoPackage[1]);
+                    GetMsg += $"[INFO] Receiving file {infoPackage[1]} from {infoPackage[3]}... ";
+                    long fileLength = long.Parse(infoPackage[2]);
+                    buf = buf.Skip(lengthInfoPacage+1).ToArray();
+                    long progress;
+                    for (progress = buf.Length; progress < fileLength; progress+=size)
+                    {
+                        file.Write(buf, 0, buf.Length);
+                        buf = new byte[size];
+                        clientSocket.Receive(buf);
+                    }
+                    int x = (int)(size - (progress - fileLength));
+                    file.Write(buf, 0, x);
+                    file.Close();
+                    GetMsg = $"Successful!\n";
+                }
+            }
+
+            /*
             bool flag = false;
             while (true)
             {
@@ -168,7 +197,7 @@ namespace Client.ViewModels
                     {
                         bytesReceived = clientSocket.Receive(buf);
                         file.Write(buf, 0, bytesReceived);
-                        if (i>progress)
+                        if (i > progress)
                         {
                             GetMsg = $"{temp}{procent}%";
                             progress += step;
@@ -181,9 +210,10 @@ namespace Client.ViewModels
                 else if (infoPackage[0] == "M")
                 {
                     clientSocket.Receive(buf);
-                    GetMsg += Encoding.UTF8.GetString(buf).Trim('\0');               
+                    GetMsg += Encoding.UTF8.GetString(buf).Trim('\0');
                 }
-            }            
+            }*/
+
         }
 
         public void SendMsg()
@@ -204,14 +234,29 @@ namespace Client.ViewModels
         {
             //Button SendFile
             var window = new FilesWindow();
-            if (Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 await window.ShowDialog(desktop.MainWindow);
             }
-            
-            string filePath = (window.DataContext as FilesWindowViewModel).FilePath;
-            string fileName = "";
-            byte[] buf = new byte[size];
+            try
+            {
+                FileInfo fileInf = new FileInfo(((FilesWindowViewModel)window.DataContext).FilePath);
+                foreach (var item in clients)
+                {
+                    byte[] buf = new byte[size];
+                    buf = Encoding.UTF8.GetBytes($"f~{fileInf.Name}~{fileInf.Length}~{login}\0");
+                    item.SendFile(fileInf.FullName, buf, null ,TransmitFileOptions.UseDefaultWorkerThread);
+                    //item.Send(Encoding.UTF8.GetBytes("f"));
+                }
+                GetMsg += "Successful!\n";
+            }
+            catch (Exception)
+            {
+                GetMsg += "[INFO] File is not exist! Check file path.\n";
+            }
+            //byte[] buf = new byte[size];
+
+            /*
             try
             {
                 FileInfo file = new FileInfo(filePath);
@@ -230,7 +275,7 @@ namespace Client.ViewModels
             catch (Exception ex)
             {
                 GetMsg += "[INFO] File is not exist! Check file path.\n";
-            }
+            }*/
         }
     }
 }
