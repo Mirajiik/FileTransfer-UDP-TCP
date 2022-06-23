@@ -80,6 +80,12 @@ namespace Client.ViewModels
                 selectNetwork = Networks[Networks.IndexOf(value)];
             }
         }
+        double progressBar = 0;
+        public double ProgressBarField
+        {
+            get => progressBar;
+            set => this.RaiseAndSetIfChanged(ref progressBar, value);
+        }
 
 
         public void Auth()
@@ -145,13 +151,17 @@ namespace Client.ViewModels
                 }
             }
         }
+        double convert(double value, double From1, double From2, double To1, double To2)
+        {
+            return (value - From1) / (From2 - From1) * (To2 - To1) + To1;
+        }
 
         public void ReadMessage(Socket clientSocket)
         {
             while (true)
             {
                 byte[] buf = new byte[size];
-                clientSocket.Receive(buf);
+                int bytesReceived = clientSocket.Receive(buf);
                 int lengthInfoPacage = Array.IndexOf(buf, (byte)'\0');
                 string[] infoPackage = Encoding.UTF8.GetString(buf.Take(lengthInfoPacage).ToArray()).Split('~');
                 if (infoPackage[0] == "f")
@@ -159,61 +169,25 @@ namespace Client.ViewModels
                     FileStream file = File.Create(infoPackage[1]);
                     GetMsg += $"[INFO] Receiving file {infoPackage[1]} from {infoPackage[3]}... ";
                     long fileLength = long.Parse(infoPackage[2]);
-                    buf = buf.Skip(lengthInfoPacage+1).ToArray();
+                    buf = buf.Skip(lengthInfoPacage + 1).Take(bytesReceived - lengthInfoPacage - 1).ToArray();
                     long progress;
-                    for (progress = buf.Length; progress < fileLength; progress+=size)
+                    //GetMsg += bytesReceived;
+                    for (progress = buf.Length; progress < fileLength; progress += bytesReceived)
                     {
+                        ProgressBarField = convert((int)progress, 0, fileLength, 0, 100);
                         file.Write(buf, 0, buf.Length);
                         buf = new byte[size];
-                        clientSocket.Receive(buf);
+                        bytesReceived = clientSocket.Receive(buf);
+                        //GetMsg += $"{bytesReceived}\n";
+                        buf = buf.Take(bytesReceived).ToArray();
+                        //Thread.Sleep(1000);
                     }
-                    int x = (int)(size - (progress - fileLength));
-                    file.Write(buf, 0, x);
+                    file.Write(buf, 0, buf.Length);
                     file.Close();
-                    GetMsg = $"Successful!\n";
+                    ProgressBarField = 0;
+                    GetMsg += $"Successful!\n";
                 }
             }
-
-            /*
-            bool flag = false;
-            while (true)
-            {
-                byte[] buf = new byte[size];
-                int bytesReceived = clientSocket.Receive(buf);
-                string[] infoPackage = Encoding.UTF8.GetString(buf).Trim('\0').Split('~');
-                if (infoPackage[0] == "F")
-                {
-                    flag = true;
-                    FileStream file = File.Create(infoPackage[1]);
-                    GetMsg += $"[INFO] Receiving file {infoPackage[1]} from {infoPackage[3]}... ";
-                    long cycle = long.Parse(infoPackage[2]) / size;
-                    if (long.Parse(infoPackage[2]) % size != 0)
-                        cycle++;
-                    string temp = GetMsg;
-                    long progress = cycle / 100;
-                    long step = progress;
-                    int procent = 0;
-                    for (int i = 0; i < cycle; i++)
-                    {
-                        bytesReceived = clientSocket.Receive(buf);
-                        file.Write(buf, 0, bytesReceived);
-                        if (i > progress)
-                        {
-                            GetMsg = $"{temp}{procent}%";
-                            progress += step;
-                            procent++;
-                        }
-                    }
-                    GetMsg = $"{temp}Successful!\n";
-                    file.Close();
-                }
-                else if (infoPackage[0] == "M")
-                {
-                    clientSocket.Receive(buf);
-                    GetMsg += Encoding.UTF8.GetString(buf).Trim('\0');
-                }
-            }*/
-
         }
 
         public void SendMsg()

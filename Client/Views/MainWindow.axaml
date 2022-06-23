@@ -3,7 +3,7 @@
         xmlns:vm="using:Client.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" Width="340" Height="420"
+        mc:Ignorable="d" Width="340" Height="440"
         Background="#FFECC2"
         x:Class="Client.Views.MainWindow"
         Icon="/Assets/avalonia-logo.ico"
@@ -15,8 +15,8 @@
     <vm:MainWindowViewModel/>
   </Design.DataContext>
 
-  <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" >
-    <Grid>
+  <StackPanel HorizontalAlignment="Center" VerticalAlignment="Top" >
+    <Grid Margin="0, 10, 0, 0">
       <Grid.RowDefinitions>
         <RowDefinition Height="*"></RowDefinition>
         <RowDefinition Height="*"></RowDefinition>
@@ -52,5 +52,6 @@
         <Button Content="Send" IsEnabled="{Binding !Enable}" FontSize="15" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Command="{Binding SendMsg}"/>
       </Border>
     </StackPanel>
+	  <ProgressBar IsVisible="{Binding ProgressBarField}" Minimum="0" Maximum="100" Value="{Binding ProgressBarField}" Margin="20, 10" Height="14"/>
   </StackPanel>
 </Window>
